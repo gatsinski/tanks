@@ -7,9 +7,16 @@ import MainScene from "scenes/MainScene";
 export default class Application extends Phaser.Game {
     constructor(mainScene: MainScene) {
         super({
-            width: 1280,
-            height: 768,
+            width: 1300,
+            height: 800,
+            backgroundColor: "#065c21",
             type: Phaser.AUTO,
+            physics: {
+                default: "arcade",
+                arcade: {
+                    debug: false,
+                },
+            },
             scene: [mainScene],
         });
     }

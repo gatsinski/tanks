@@ -4,7 +4,7 @@
     "paths": {
       "assets/*": ["src/assets/*"],
       "app/*": ["src/app/*"],
-      "scenes/*": ["src/app/scenes/*"],
+      "scenes/*": ["src/app/scenes/*"]
     },
     "outDir": "./dist/",
     "sourceMap": true,

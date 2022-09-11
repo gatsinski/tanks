@@ -10,3 +10,6 @@ indent_size = 4
 
 [.prettierrc, .eslintrc, tsconfig.json, package.json, package-lock.json, webpack.*.js]
 indent_size = 2
+
+[levels.ts]
+max_line_length = 256
