@@ -1,0 +1,20 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Smoldering charred tank hull wreckage -->
+  <!-- Left tread broken piece -->
+  <rect x="5" y="7" width="5" height="15" rx="1" fill="#1c1c1c" stroke="#111" stroke-width="0.8"/>
+  <polygon points="5,22 10,22 8,28 4,26" fill="#2d221c"/>
+  <!-- Right tread twisted -->
+  <rect x="29" y="14" width="5" height="18" rx="1" fill="#1c1c1c" stroke="#111" stroke-width="0.8"/>
+  <!-- Blown up chassis chunks -->
+  <polygon points="11,10 27,8 26,24 13,27" fill="#3e2723" stroke="#211512" stroke-width="1"/>
+  <polygon points="12,23 25,21 28,32 10,34" fill="#4e342e" stroke="#271c19" stroke-width="0.8"/>
+  <!-- Dented blown off turret ring -->
+  <ellipse cx="18" cy="19" rx="6" ry="5" fill="#261713" stroke="#ff5722" stroke-width="0.8"/>
+  <!-- Detached broken cannon barrel -->
+  <rect x="20" y="22" width="13" height="3" rx="1" transform="rotate(35 20 22)" fill="#212121" stroke="#ff9800" stroke-width="0.6"/>
+  <!-- Charred scorch marks / embers -->
+  <circle cx="16" cy="18" r="2.5" fill="#d84315"/>
+  <circle cx="18" cy="20" r="1.5" fill="#ffb300"/>
+  <circle cx="24" cy="14" r="1" fill="#ff5722"/>
+  <circle cx="12" cy="15" r="1.5" fill="#212121"/>
+</svg>
