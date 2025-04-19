@@ -1,39 +1,57 @@
 import Phaser from "phaser";
 import { Tank } from "./Tank";
+import { PlayerControls } from "app/types/PlayerControls";
 
 export class Player extends Tank {
-    sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-
     constructor(
-        private cursors: Phaser.Types.Input.Keyboard.CursorKeys,
+        private controls: PlayerControls,
         physics: Phaser.Physics.Arcade.ArcadePhysics,
-        x: number,
-        y: number,
+        mapCoordinates: [number, number],
+        private cellDimensions: [number, number],
         texture: string
     ) {
-        super(physics, x, y, texture);
+        const x = mapCoordinates[0] * cellDimensions[0] + cellDimensions[0] / 2;
+        const y = mapCoordinates[1] * cellDimensions[1] + cellDimensions[1] / 2;
+
+        super(physics, x, y, texture, 3);
+    }
+
+    get mapX(): number {
+        return Math.floor(this.x / this.cellDimensions[0]);
+    }
+
+    get mapY(): number {
+        return Math.floor(this.y / this.cellDimensions[1]);
+    }
+
+    get isFirePressed(): boolean {
+        return Phaser.Input.Keyboard.JustDown(this.controls.fire);
     }
 
     update() {
+        if (!this.isActive) return;
+
         this.sprite.setVelocity(0);
         this.sprite.setAngularVelocity(0);
 
-        if (this.cursors.left.isDown) {
-            this.sprite.setAngularVelocity(-100);
-        } else if (this.cursors.right.isDown) {
-            this.sprite.setAngularVelocity(100);
+        const currentSpeed = this.speed * this.speedModifier;
+
+        if (this.controls.left.isDown) {
+            this.sprite.setAngularVelocity(-130);
+        } else if (this.controls.right.isDown) {
+            this.sprite.setAngularVelocity(130);
         }
 
-        if (this.cursors.up.isDown) {
+        if (this.controls.up.isDown) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
-                100
+                currentSpeed
             );
             this.sprite.setVelocity(velocity.x, velocity.y);
-        } else if (this.cursors.down.isDown) {
+        } else if (this.controls.down.isDown) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
-                100
+                currentSpeed * 0.75
             );
             this.sprite.setVelocity(-velocity.x, -velocity.y);
         }

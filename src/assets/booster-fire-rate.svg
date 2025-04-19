@@ -1,0 +1,10 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="8" fill="#e65100" stroke="#ffa726" stroke-width="2.5"/>
+  <!-- Triple bullet / rapid rockets -->
+  <rect x="11" y="14" width="3" height="13" rx="1.5" fill="#fff"/>
+  <polygon points="12.5,9 10,14 15,14" fill="#ffd54f"/>
+  <rect x="18.5" y="10" width="3" height="17" rx="1.5" fill="#fff"/>
+  <polygon points="20,5 17.5,10 22.5,10" fill="#ffd54f"/>
+  <rect x="26" y="14" width="3" height="13" rx="1.5" fill="#fff"/>
+  <polygon points="27.5,9 25,14 30,14" fill="#ffd54f"/>
+</svg>
