@@ -22,7 +22,7 @@ export default class MainScene extends Phaser.Scene {
     preload(): void {
         this.load.svg("tank", "assets/tank.svg", { width: 30, height: 30 });
         this.load.svg("enemy", "assets/enemy.svg", { width: 30, height: 30 });
-        this.load.svg("wall", "assets/wall.svg", { width: 25, height: 25 });
+        this.load.svg("wall", "assets/wall.svg", { width: 40, height: 40 });
         this.load.spritesheet("explosion", "assets/explosion.png", {
             frameWidth: 32,
             frameHeight: 32,
@@ -35,32 +35,7 @@ export default class MainScene extends Phaser.Scene {
         this.generateBulletTexture();
         this.createExplodeAnimation();
 
-        this.walls = this.createLevelWalls(LEVEL_1);
-
-        this.player = new Player(this.cursors, this.physics, 100, 775, "tank");
-        this.physics.add.collider(this.player.sprite, this.walls);
-
-        this.input.keyboard.on("keydown", (event: { keyCode: number }) => {
-            if (event.keyCode === Phaser.Input.Keyboard.KeyCodes.SPACE) {
-                this.fireProjectile(this.player, this.enemies);
-            }
-        });
-
-        this.enemies.push(new Enemy(this.time, this.physics, 0, 0, "enemy"));
-        this.enemies.push(new Enemy(this.time, this.physics, 50, 0, "enemy"));
-
-        for (const enemy of this.enemies) {
-            this.physics.add.collider(enemy.sprite, this.walls);
-            this.time.addEvent({
-                delay: 1000,
-                repeat: -1,
-                callback: () => {
-                    if (enemy.isActive) {
-                        this.fireProjectile(enemy, [this.player]);
-                    }
-                },
-            });
-        }
+        this.createMap(LEVEL_1);
     }
 
     update() {
@@ -135,11 +110,9 @@ export default class MainScene extends Phaser.Scene {
         this.projectiles.push(projectile);
     }
 
-    private createLevelWalls(
-        level: number[][]
-    ): Phaser.Physics.Arcade.StaticGroup {
+    private createMap(level: number[][]) {
         const wallImage = this.textures.get("wall").getSourceImage();
-        const group = this.physics.add.staticGroup();
+        this.walls = this.physics.add.staticGroup();
 
         for (let rowIndex = 0; rowIndex < level.length; rowIndex++) {
             for (
@@ -147,40 +120,62 @@ export default class MainScene extends Phaser.Scene {
                 colIndex < level[rowIndex].length;
                 colIndex++
             ) {
-                if (level[rowIndex][colIndex]) {
-                    group.create(
-                        wallImage.width * 2 * colIndex + wallImage.width / 2,
-                        wallImage.height * 2 * rowIndex + wallImage.height / 2,
-                        "wall"
+                const cellType = level[rowIndex][colIndex];
+
+                if (cellType === 2) {
+                    this.player = new Player(
+                        this.cursors,
+                        this.physics,
+                        [colIndex, rowIndex],
+                        [wallImage.width, wallImage.height],
+                        "tank"
                     );
-                    group.create(
-                        wallImage.width * 2 * colIndex +
-                            wallImage.width / 2 +
-                            wallImage.width,
-                        wallImage.height * 2 * rowIndex + wallImage.height / 2,
-                        "wall"
+                } else if (cellType === 3) {
+                    this.enemies.push(
+                        new Enemy(
+                            this.time,
+                            this.physics,
+                            this.tweens,
+                            [colIndex, rowIndex],
+                            [wallImage.width, wallImage.height],
+                            "enemy",
+                            LEVEL_1
+                        )
                     );
-                    group.create(
-                        wallImage.width * 2 * colIndex + wallImage.width / 2,
-                        wallImage.height * 2 * rowIndex +
-                            wallImage.height / 2 +
-                            wallImage.height,
-                        "wall"
-                    );
-                    group.create(
-                        wallImage.width * 2 * colIndex +
-                            wallImage.width / 2 +
-                            wallImage.width,
-                        wallImage.height * 2 * rowIndex +
-                            wallImage.height / 2 +
-                            wallImage.height,
+                } else if (cellType === 1) {
+                    this.walls.create(
+                        wallImage.width * colIndex,
+                        wallImage.height * rowIndex,
                         "wall"
                     );
                 }
             }
         }
 
-        return group;
+        for (const enemy of this.enemies) {
+            this.physics.add.collider(enemy.sprite, this.walls);
+            this.time.addEvent({
+                delay: 1000,
+                repeat: -1,
+                callback: () => {
+                    if (enemy.isActive) {
+                        // this.fireProjectile(enemy, [this.player]);
+
+                        enemy.findPathToPlayer(
+                            this.player.mapX,
+                            this.player.mapY
+                        );
+                    }
+                },
+            });
+        }
+        this.physics.add.collider(this.player.sprite, this.walls);
+
+        this.input.keyboard.on("keydown", (event: { keyCode: number }) => {
+            if (event.keyCode === Phaser.Input.Keyboard.KeyCodes.SPACE) {
+                this.fireProjectile(this.player, this.enemies);
+            }
+        });
     }
 
     private handleBulletAndWallCollision(
@@ -194,6 +189,11 @@ export default class MainScene extends Phaser.Scene {
             bullet.body.y,
             "explosion"
         );
+
+        const wallMapX = Math.ceil(element.body.x / element.body.width);
+        const wallMapY = Math.ceil(element.body.y / element.body.height);
+
+        LEVEL_1[wallMapY][wallMapX] = 0;
 
         element.destroy();
 

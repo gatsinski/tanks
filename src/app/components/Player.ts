@@ -7,11 +7,22 @@ export class Player extends Tank {
     constructor(
         private cursors: Phaser.Types.Input.Keyboard.CursorKeys,
         physics: Phaser.Physics.Arcade.ArcadePhysics,
-        x: number,
-        y: number,
+        mapCoordinates: [number, number],
+        private cellDimensions: [number, number],
         texture: string
     ) {
+        const x = mapCoordinates[0] * cellDimensions[0];
+        const y = mapCoordinates[1] * cellDimensions[1];
+
         super(physics, x, y, texture);
+    }
+
+    get mapX(): number {
+        return Math.floor(this.x / this.cellDimensions[0]);
+    }
+
+    get mapY(): number {
+        return Math.floor(this.y / this.cellDimensions[1]);
     }
 
     update() {

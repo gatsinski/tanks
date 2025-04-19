@@ -20,6 +20,7 @@
   "author": "Hristo Gatsinski",
   "license": "MIT",
   "dependencies": {
+    "easystarjs": "^0.4.4",
     "phaser": "^3.55.2",
     "reflect-metadata": "^0.1.13",
     "typedi": "^0.10.0"

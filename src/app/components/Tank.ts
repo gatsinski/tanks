@@ -24,6 +24,7 @@ export class Tank {
         texture: string
     ) {
         this.sprite = this.physics.add.sprite(x, y, texture);
+
         this.sprite.setCollideWorldBounds(true);
     }
 }
