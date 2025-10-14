@@ -66,7 +66,7 @@ export class Enemy extends Tank {
             if (path && path[1]) {
                 this.moveToPosition(path[1]); // The first step is always the current position
             } else {
-                console.error("path not found", playerX, playerY, this.map);
+                console.error("Path not found", playerX, playerY, this.map);
             }
         });
 

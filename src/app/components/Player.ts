@@ -18,11 +18,11 @@ export class Player extends Tank {
     }
 
     get mapX(): number {
-        return Math.floor(this.x / this.cellDimensions[0]);
+        return Math.round(this.x / this.cellDimensions[0]);
     }
 
     get mapY(): number {
-        return Math.floor(this.y / this.cellDimensions[1]);
+        return Math.round(this.y / this.cellDimensions[1]);
     }
 
     update() {
