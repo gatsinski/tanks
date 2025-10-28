@@ -1,9 +1,10 @@
-import { Player } from "./Player";
 import { Tank } from "./Tank";
 import EasyStar from "easystarjs";
 
 export class Enemy extends Tank {
     movementInProgress: number;
+
+    private easystar: EasyStar.js;
 
     constructor(
         private time: Phaser.Time.Clock,
@@ -18,6 +19,10 @@ export class Enemy extends Tank {
         const y = mapCoordinates[1] * cellDimensions[1];
 
         super(physics, x, y, texture);
+
+        this.easystar = new EasyStar.js();
+        this.easystar.setGrid(this.map);
+        this.easystar.setAcceptableTiles([0, 2, 3]);
     }
 
     get mapX(): number {
@@ -57,20 +62,23 @@ export class Enemy extends Tank {
     }
 
     findPathToPlayer(playerX: number, playerY: number) {
-        const easystar = new EasyStar.js();
-        easystar.setGrid(this.map);
-        easystar.setAcceptableTiles([0, 2, 3]);
-
         // Find Path
-        easystar.findPath(this.mapX, this.mapY, playerX, playerY, (path) => {
-            if (path && path[1]) {
-                this.moveToPosition(path[1]); // The first step is always the current position
-            } else {
-                console.error("Path not found", playerX, playerY, this.map);
+        this.easystar.findPath(
+            this.mapX,
+            this.mapY,
+            playerX,
+            playerY,
+            (path) => {
+                if (path && path[1]) {
+                    console.error("Path found", path);
+                    this.moveToPosition(path[1]); // The first step is always the current position
+                } else {
+                    console.error("Path not found", playerX, playerY, this.map);
+                }
             }
-        });
+        );
 
-        easystar.calculate(); // Execute pathfinding
+        this.easystar.calculate(); // Execute pathfinding
     }
 
     moveToPosition(position: { x: number; y: number }) {
@@ -120,5 +128,92 @@ export class Enemy extends Tank {
                 // Perform actions after the movement
             },
         });
+    }
+
+    findPathToNearestPlayer(players: Array<{ mapX: number; mapY: number }>) {
+        if (players.length === 0) return;
+
+        let shortestPath: Array<{ x: number; y: number }> | null = null;
+        let shortestDistance = Infinity;
+        let pathsCalculated = 0;
+        const totalPlayers = players.length;
+
+        players.forEach((player) => {
+            this.easystar.findPath(
+                this.mapX,
+                this.mapY,
+                player.mapX,
+                player.mapY,
+                (path) => {
+                    pathsCalculated++;
+
+                    // If path is found and is shorter than current shortest
+                    if (
+                        path &&
+                        path.length > 0 &&
+                        path.length < shortestDistance
+                    ) {
+                        shortestPath = path;
+                        shortestDistance = path.length;
+                    }
+
+                    // When all paths are calculated, move to the nearest player
+                    if (pathsCalculated === totalPlayers) {
+                        if (shortestPath && shortestPath[1]) {
+                            console.log(
+                                "Moving to nearest player, path length:",
+                                shortestDistance
+                            );
+                            this.moveToPosition(shortestPath[1]);
+                        } else {
+                            console.log("No path found to any player");
+                        }
+                    }
+                }
+            );
+        });
+
+        this.easystar.calculate();
+    }
+
+    // Alternative: Grid distance approach (faster, less accurate)
+    findPathToNearestPlayerByDistance(
+        players: Array<{ mapX: number; mapY: number }>
+    ) {
+        if (players.length === 0) return;
+
+        // Find nearest player by grid distance first
+        let nearestPlayer = players[0];
+        let shortestDistance =
+            Math.abs(this.mapX - players[0].mapX) +
+            Math.abs(this.mapY - players[0].mapY);
+
+        for (let i = 1; i < players.length; i++) {
+            const distance =
+                Math.abs(this.mapX - players[i].mapX) +
+                Math.abs(this.mapY - players[i].mapY);
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                nearestPlayer = players[i];
+            }
+        }
+
+        // Then find path to nearest player
+        this.easystar.findPath(
+            this.mapX,
+            this.mapY,
+            nearestPlayer.mapX,
+            nearestPlayer.mapY,
+            (path) => {
+                if (path && path[1]) {
+                    console.log("Path found to nearest player");
+                    this.moveToPosition(path[1]);
+                } else {
+                    console.log("Path not found to nearest player");
+                }
+            }
+        );
+
+        this.easystar.calculate();
     }
 }

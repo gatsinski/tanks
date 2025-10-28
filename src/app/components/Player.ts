@@ -1,11 +1,12 @@
 import Phaser from "phaser";
 import { Tank } from "./Tank";
+import { PlayerControls } from "app/types/PlayerControls";
 
 export class Player extends Tank {
     sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
     constructor(
-        private cursors: Phaser.Types.Input.Keyboard.CursorKeys,
+        private controls: PlayerControls,
         physics: Phaser.Physics.Arcade.ArcadePhysics,
         mapCoordinates: [number, number],
         private cellDimensions: [number, number],
@@ -25,23 +26,27 @@ export class Player extends Tank {
         return Math.round(this.y / this.cellDimensions[1]);
     }
 
+    get isFirePressed(): boolean {
+        return Phaser.Input.Keyboard.JustDown(this.controls.fire);
+    }
+
     update() {
         this.sprite.setVelocity(0);
         this.sprite.setAngularVelocity(0);
 
-        if (this.cursors.left.isDown) {
+        if (this.controls.left.isDown) {
             this.sprite.setAngularVelocity(-100);
-        } else if (this.cursors.right.isDown) {
+        } else if (this.controls.right.isDown) {
             this.sprite.setAngularVelocity(100);
         }
 
-        if (this.cursors.up.isDown) {
+        if (this.controls.up.isDown) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
                 100
             );
             this.sprite.setVelocity(velocity.x, velocity.y);
-        } else if (this.cursors.down.isDown) {
+        } else if (this.controls.down.isDown) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
                 100

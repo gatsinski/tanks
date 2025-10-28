@@ -6,13 +6,15 @@ import { Player } from "app/components/Player";
 import { BRICK_WALL, CONCRETE_WALL, ENEMY, LEVEL_1, PLAYER } from "app/levels";
 import { Enemy } from "app/components/Enemy";
 import { Tank } from "app/components/Tank";
+import { getPlayerControls } from "app/utils";
 
 @Service()
 export default class MainScene extends Phaser.Scene {
-    private player: Player;
+    static readonly CELL_SIZE = 40;
+
+    private players: Player[] = [];
     private enemies: Enemy[] = [];
     private walls: Phaser.Physics.Arcade.StaticGroup;
-    private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     private projectiles: Projectile[] = [];
 
     constructor() {
@@ -23,7 +25,10 @@ export default class MainScene extends Phaser.Scene {
         this.load.svg("tank", "assets/tank.svg", { width: 30, height: 30 });
         this.load.svg("enemy", "assets/enemy.svg", { width: 30, height: 30 });
         this.load.svg("wall", "assets/wall.svg", { width: 40, height: 40 });
-        this.load.svg("concrete-wall", "assets/concrete-wall.svg", { width: 40, height: 40 });
+        this.load.svg("concrete-wall", "assets/concrete-wall.svg", {
+            width: 40,
+            height: 40,
+        });
         this.load.spritesheet("explosion", "assets/explosion.png", {
             frameWidth: 32,
             frameHeight: 32,
@@ -31,8 +36,6 @@ export default class MainScene extends Phaser.Scene {
     }
 
     create(): void {
-        this.cursors = this.input.keyboard.createCursorKeys();
-
         this.generateBulletTexture();
         this.createExplodeAnimation();
 
@@ -40,8 +43,14 @@ export default class MainScene extends Phaser.Scene {
     }
 
     update() {
-        if (this.player.isActive) {
-            this.player.update();
+        this.players = this.players.filter((item) => item.isActive);
+
+        for (const player of this.players) {
+            player.update();
+
+            if (player.isFirePressed) {
+                this.fireProjectile(player, [...this.players, ...this.enemies]);
+            }
         }
 
         this.enemies = this.enemies.filter((item) => item.isActive);
@@ -99,6 +108,10 @@ export default class MainScene extends Phaser.Scene {
         );
 
         for (const opponent of opponents) {
+            if (opponent === origin) {
+                continue;
+            }
+
             this.physics.add.overlap(
                 projectile.image,
                 opponent.sprite,
@@ -125,12 +138,18 @@ export default class MainScene extends Phaser.Scene {
                 const cellType = level[rowIndex][colIndex];
 
                 if (cellType === PLAYER) {
-                    this.player = new Player(
-                        this.cursors,
-                        this.physics,
-                        [colIndex, rowIndex],
-                        [wallImage.width, wallImage.height],
-                        "tank"
+                    const controls = getPlayerControls(
+                        this.players.length,
+                        this.input
+                    );
+                    this.players.push(
+                        new Player(
+                            controls,
+                            this.physics,
+                            [colIndex, rowIndex],
+                            [wallImage.width, wallImage.height],
+                            "tank"
+                        )
                     );
                 } else if (cellType === ENEMY) {
                     this.enemies.push(
@@ -150,7 +169,7 @@ export default class MainScene extends Phaser.Scene {
                         wallImage.height * rowIndex,
                         "wall"
                     );
-                }  else if (cellType === CONCRETE_WALL) {
+                } else if (cellType === CONCRETE_WALL) {
                     this.walls.create(
                         wallImage.width * colIndex,
                         wallImage.height * rowIndex,
@@ -170,21 +189,21 @@ export default class MainScene extends Phaser.Scene {
                     if (enemy.isActive) {
                         // this.fireProjectile(enemy, [this.player]);
 
-                        enemy.findPathToPlayer(
-                            this.player.mapX,
-                            this.player.mapY
-                        );
+                        enemy.findPathToNearestPlayer(this.players);
                     }
                 },
             });
         }
-        this.physics.add.collider(this.player.sprite, this.walls);
 
-        this.input.keyboard.on("keydown", (event: { keyCode: number }) => {
-            if (event.keyCode === Phaser.Input.Keyboard.KeyCodes.SPACE) {
-                this.fireProjectile(this.player, this.enemies);
-            }
-        });
+        for (const player of this.players) {
+            this.physics.add.collider(player.sprite, this.walls);
+        }
+
+        // this.input.keyboard.on("keydown", (event: { keyCode: number }) => {
+        //     if (event.keyCode === Phaser.Input.Keyboard.KeyCodes.SPACE) {
+        //         this.fireProjectile(this.player, this.enemies);
+        //     }
+        // });
     }
 
     private handleBulletAndWallCollision(
@@ -203,8 +222,10 @@ export default class MainScene extends Phaser.Scene {
 
         bullet.destroy();
 
-        const wallMapX = Math.ceil(element.body.x / element.body.width);
-        const wallMapY = Math.ceil(element.body.y / element.body.height);
+        const wallMapX = Math.round(element.body.x / MainScene.CELL_SIZE);
+        const wallMapY = Math.round(element.body.y / MainScene.CELL_SIZE);
+
+        console.error("wall", element.body.height);
 
         LEVEL_1[wallMapY][wallMapX] = 0;
 
@@ -222,7 +243,7 @@ export default class MainScene extends Phaser.Scene {
         });
     }
 
-        private handleBulletAndTankCollision(
+    private handleBulletAndTankCollision(
         bullet: Phaser.Types.Physics.Arcade.ImageWithDynamicBody,
         element: Phaser.Types.Physics.Arcade.GameObjectWithStaticBody
     ) {
@@ -238,8 +259,11 @@ export default class MainScene extends Phaser.Scene {
 
         bullet.destroy();
 
-        const wallMapX = Math.ceil(element.body.x / element.body.width);
-        const wallMapY = Math.ceil(element.body.y / element.body.height);
+        const wallMapX = Math.round(element.body.x / MainScene.CELL_SIZE);
+        const wallMapY = Math.round(element.body.y / MainScene.CELL_SIZE);
+
+        console.error("tank", element.body.height);
+        console.error(LEVEL_1, wallMapY, wallMapX);
 
         LEVEL_1[wallMapY][wallMapX] = 0;
 
