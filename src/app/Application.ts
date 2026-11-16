@@ -19,6 +19,13 @@ export default class Application extends Phaser.Game {
         super({
             width: 1300,
             height: 800,
+            parent: "game",
+            scale: {
+                // Scale the fixed 1300x800 world to the largest size that
+                // fits the window, keeping the aspect ratio
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+            },
             backgroundColor: "#065c21",
             type: Phaser.AUTO,
             physics: {
