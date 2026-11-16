@@ -34,7 +34,7 @@ interface MenuItem {
     remove?: () => void;
 }
 
-// Colors from src/assets/STYLE.md
+// Colors from public/assets/STYLE.md
 const COLORS = {
     floor: 0x065c21,
     panel: 0x222222,

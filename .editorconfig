@@ -8,7 +8,7 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-[.prettierrc, .eslintrc, tsconfig.json, package.json, package-lock.json, webpack.*.js]
+[.prettierrc, .eslintrc, tsconfig.json, package.json, package-lock.json, vite.config.ts]
 indent_size = 2
 
 [levels.ts]

@@ -15,7 +15,7 @@ export interface EndSceneData {
 
 /**
  * Overlay shown on top of the paused MainScene when the round ends.
- * Colors follow src/assets/STYLE.md.
+ * Colors follow public/assets/STYLE.md.
  */
 @Service()
 export default class EndScene extends Phaser.Scene {

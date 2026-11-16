@@ -2,19 +2,21 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "assets/*": ["src/assets/*"],
       "app/*": ["src/app/*"],
       "scenes/*": ["src/app/scenes/*"]
     },
-    "outDir": "./dist/",
+    "noEmit": true,
     "sourceMap": true,
     "noImplicitAny": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
-    "module": "es6",
-    "target": "es5",
+    "module": "esnext",
+    "target": "es2020",
+    "isolatedModules": true,
     "allowJs": true,
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
 }

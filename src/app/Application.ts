@@ -1,4 +1,4 @@
-import { Service } from "typedi";
+import { Inject, Service } from "typedi";
 import Phaser from "phaser";
 
 import MainScene from "scenes/MainScene";
@@ -9,10 +9,10 @@ import EditorScene from "scenes/EditorScene";
 @Service()
 export default class Application extends Phaser.Game {
     constructor(
-        menuScene: MenuScene,
-        mainScene: MainScene,
-        endScene: EndScene,
-        editorScene: EditorScene
+        @Inject(() => MenuScene) menuScene: MenuScene,
+        @Inject(() => MainScene) mainScene: MainScene,
+        @Inject(() => EndScene) endScene: EndScene,
+        @Inject(() => EditorScene) editorScene: EditorScene
     ) {
         super({
             width: 1300,
