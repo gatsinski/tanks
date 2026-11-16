@@ -3,6 +3,7 @@ import { Service } from "typedi";
 
 import { Projectile } from "app/components/Projectile";
 import { sound } from "app/sound";
+import { touchControls } from "app/components/TouchControls";
 import { Player } from "app/components/Player";
 import {
     BRICK_WALL,
@@ -174,7 +175,25 @@ export default class MainScene extends Phaser.Scene {
         this.levelGrid = this.currentLevel.grid.map((row) => [...row]);
 
         this.createMap(this.levelGrid);
+        this.fitCameraToMap();
         this.createStatusUI();
+
+        // Touch joystick panel is visible only while a round is on screen
+        document.body.classList.add("playing");
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+            document.body.classList.remove("playing")
+        );
+
+        if (touchControls.isSupported && this.players[0]) {
+            this.players[0].touch = touchControls;
+            // No ESC key on mobile: tap the status bar to leave
+            this.statusText
+                .setText(this.statusText.text.replace("ESC: Menu", "☰ Menu"))
+                .setInteractive({ useHandCursor: true })
+                .on("pointerdown", () => {
+                    if (!this.isRoundOver) this.scene.start(MenuScene.KEY);
+                });
+        }
 
         this.initialEnemyCount = this.hostileEnemies.length;
         this.roundStartTime = this.time.now;
@@ -212,6 +231,7 @@ export default class MainScene extends Phaser.Scene {
             }
         );
         this.statusText.setDepth(100);
+        this.pinToScreen(this.statusText);
 
         // Scoreboard: remaining tanks per enemy team present in this level
         this.teamTexts = new Map();
@@ -234,6 +254,34 @@ export default class MainScene extends Phaser.Scene {
             this.updateTeamText(team.id, team.name);
             x -= text.width + 6;
         }
+        this.teamTexts.forEach((text) => this.pinToScreen(text));
+    }
+
+    /** Zoom the camera so the map fills the canvas (the map is smaller) */
+    private fitCameraToMap() {
+        const mapW = this.levelGrid[0].length * MainScene.CELL_SIZE;
+        const mapH = this.levelGrid.length * MainScene.CELL_SIZE;
+        const cam = this.cameras.main;
+        cam.setZoom(
+            Math.min(this.scale.width / mapW, this.scale.height / mapH)
+        );
+        cam.centerOn(mapW / 2, mapH / 2);
+    }
+
+    /**
+     * Keep a HUD object at its given screen position and size regardless of
+     * camera zoom (the zoom scales around the canvas center).
+     */
+    private pinToScreen(obj: Phaser.GameObjects.Text) {
+        const cam = this.cameras.main;
+        const cx = this.scale.width / 2;
+        const cy = this.scale.height / 2;
+        obj.setScrollFactor(0)
+            .setScale(1 / cam.zoom)
+            .setPosition(
+                cx + (obj.x - cx) / cam.zoom,
+                cy + (obj.y - cy) / cam.zoom
+            );
     }
 
     private updateTeamText(teamId: string, name?: string) {

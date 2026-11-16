@@ -141,7 +141,7 @@ export default class EditorScene extends Phaser.Scene {
         this.input.mouse.disableContextMenu();
 
         this.add
-            .rectangle(0, GRID_Y, COLS * CELL, ROWS * CELL, 0x065c21)
+            .rectangle(0, GRID_Y, COLS * CELL, ROWS * CELL, 0x000000)
             .setOrigin(0);
         this.drawGridLines();
 

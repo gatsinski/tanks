@@ -45,7 +45,7 @@ one, pick it from the same family (Material 900 / 700 / 400 shades).
 
 | Role           | Dark (shadow/gap) | Base      | Light (highlight) |
 | -------------- | ----------------- | --------- | ----------------- |
-| Grass / floor  | —                 | `#065c21` | —                 |
+| Floor          | —                 | `#000000` | —                 |
 | Foliage (bush) | `#175e19`         | `#238226` | `#42c447`         |
 | Water          | `#1e528e`         | `#3385d6` | `#7ac0ff`         |
 

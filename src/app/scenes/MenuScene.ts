@@ -17,6 +17,7 @@ import {
 import { loadCustomLevels, deleteCustomLevel } from "app/customLevels";
 import EditorScene from "app/scenes/EditorScene";
 import { sound } from "app/sound";
+import { touchControls } from "app/components/TouchControls";
 
 export interface GameStartData {
     levelIndex: number;
@@ -39,7 +40,7 @@ interface MenuItem {
 
 // Colors from public/assets/STYLE.md
 const COLORS = {
-    floor: 0x065c21,
+    floor: 0x000000,
     panel: 0x222222,
     accent: 0xffcc00,
     accentText: "#ffcc00",
@@ -335,6 +336,10 @@ export default class MenuScene extends Phaser.Scene {
             sound.setEnabled(!sound.enabled);
             this.setFocus(this.focus);
         };
+        const toggleLeftHand = () => {
+            touchControls.leftHanded = !touchControls.leftHanded;
+            this.setFocus(this.focus);
+        };
         const changeVolume = (dir: number) => {
             sound.setVolume(sound.volume + dir * 10);
             if (!sound.enabled) sound.setEnabled(true);
@@ -360,10 +365,18 @@ export default class MenuScene extends Phaser.Scene {
                     adjust: changeVolume,
                     clickAdjusts: true,
                 },
+                {
+                    label: () =>
+                        `Left-hand mode:  ◀ ${
+                            touchControls.leftHanded ? "ON" : "OFF"
+                        } ▶`,
+                    action: toggleLeftHand,
+                    adjust: toggleLeftHand,
+                },
                 { label: () => "Back", action: () => this.showMainPage() },
             ],
             width / 2,
-            300,
+            280,
             80,
             520
         );

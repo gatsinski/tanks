@@ -26,7 +26,7 @@ export default class Application extends Phaser.Game {
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH,
             },
-            backgroundColor: "#065c21",
+            backgroundColor: "#000000",
             type: Phaser.AUTO,
             physics: {
                 default: "arcade",

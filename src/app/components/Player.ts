@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { Tank } from "./Tank";
 import { PlayerControls } from "app/types/PlayerControls";
+import type { TouchControls } from "./TouchControls";
 
 export class Player extends Tank {
     constructor(
@@ -24,8 +25,13 @@ export class Player extends Tank {
         return Math.floor(this.y / this.cellDimensions[1]);
     }
 
+    /** On-screen joystick + fire button (touch devices, player 1 only) */
+    touch: TouchControls | null = null;
+
     get isFirePressed(): boolean {
-        return Phaser.Input.Keyboard.JustDown(this.controls.fire);
+        // Keyboard fires per press; the touch button auto-fires while held
+        const key = Phaser.Input.Keyboard.JustDown(this.controls.fire);
+        return key || !!this.touch?.isFireDown;
     }
 
     update() {
@@ -36,19 +42,25 @@ export class Player extends Tank {
 
         const currentSpeed = this.speed * this.speedModifier;
 
-        if (this.controls.left.isDown) {
+        const t = this.touch?.pressed;
+        const left = this.controls.left.isDown || !!t?.left;
+        const right = this.controls.right.isDown || !!t?.right;
+        const up = this.controls.up.isDown || !!t?.up;
+        const down = this.controls.down.isDown || !!t?.down;
+
+        if (left) {
             this.sprite.setAngularVelocity(-130);
-        } else if (this.controls.right.isDown) {
+        } else if (right) {
             this.sprite.setAngularVelocity(130);
         }
 
-        if (this.controls.up.isDown) {
+        if (up) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
                 currentSpeed
             );
             this.sprite.setVelocity(velocity.x, velocity.y);
-        } else if (this.controls.down.isDown) {
+        } else if (down) {
             const velocity = this.physics.velocityFromAngle(
                 this.sprite.angle - 90,
                 currentSpeed * 0.75
