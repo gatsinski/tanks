@@ -11,6 +11,13 @@ export default defineConfig({
       scenes: src("app/scenes"),
     },
   },
+  server: {
+    // Listen on all interfaces so phones on the local network can connect
+    host: true,
+  },
+  preview: {
+    host: true,
+  },
   build: {
     sourcemap: true,
     chunkSizeWarningLimit: 2000, // Phaser alone is ~1 MB
