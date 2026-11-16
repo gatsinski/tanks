@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { Service } from "typedi";
 
 import { LEVELS } from "app/levels";
+import { sound } from "app/sound";
 
 export interface EndSceneData {
     won: boolean;
@@ -26,6 +27,7 @@ export default class EndScene extends Phaser.Scene {
     }
 
     create(data: EndSceneData): void {
+        sound.play(data.won ? "win" : "lose");
         const { width, height } = this.scale;
         const cx = width / 2;
         const cy = height / 2;

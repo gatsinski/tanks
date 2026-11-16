@@ -5,6 +5,7 @@ import MainScene from "scenes/MainScene";
 import EndScene from "scenes/EndScene";
 import MenuScene from "scenes/MenuScene";
 import EditorScene from "scenes/EditorScene";
+import SoundScene from "scenes/SoundScene";
 
 @Service()
 export default class Application extends Phaser.Game {
@@ -12,7 +13,8 @@ export default class Application extends Phaser.Game {
         @Inject(() => MenuScene) menuScene: MenuScene,
         @Inject(() => MainScene) mainScene: MainScene,
         @Inject(() => EndScene) endScene: EndScene,
-        @Inject(() => EditorScene) editorScene: EditorScene
+        @Inject(() => EditorScene) editorScene: EditorScene,
+        @Inject(() => SoundScene) soundScene: SoundScene
     ) {
         super({
             width: 1300,
@@ -25,7 +27,8 @@ export default class Application extends Phaser.Game {
                     debug: false,
                 },
             },
-            scene: [menuScene, mainScene, endScene, editorScene],
+            // SoundScene last so it renders on top of everything
+            scene: [menuScene, mainScene, endScene, editorScene, soundScene],
         });
     }
 }

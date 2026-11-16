@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { Service } from "typedi";
 
 import { Projectile } from "app/components/Projectile";
+import { sound } from "app/sound";
 import { Player } from "app/components/Player";
 import {
     BRICK_WALL,
@@ -453,6 +454,7 @@ export default class MainScene extends Phaser.Scene {
     }
 
     private fireProjectile(origin: Tank, opponents: Tank[]) {
+        sound.play("shoot");
         const angle = origin.angle - 90;
         const turretOffset = this.physics.velocityFromAngle(angle, 25);
 
@@ -657,7 +659,12 @@ export default class MainScene extends Phaser.Scene {
 
         if (wallType === "concrete-wall") {
             // Indestructible
+            sound.play("ricochet");
             return;
+        }
+
+        if (wallType === "wall" || wallType === "damaged-wall") {
+            sound.play("wallBreak");
         }
 
         if (wallType === "wall") {
@@ -724,6 +731,7 @@ export default class MainScene extends Phaser.Scene {
         this.spawnExplosion(bulletX, bulletY);
 
         const isDead = tank.takeHit(projectile.damage);
+        sound.play(isDead ? "tankDestroyed" : "hit");
         if (isDead) {
             this.spawnExplosion(tank.x, tank.y, 1.5);
 
@@ -826,6 +834,7 @@ export default class MainScene extends Phaser.Scene {
                     // Check if tank can accept this booster type
                     if (tank.canAcceptBooster(booster.type)) {
                         tank.applyBooster(booster.type);
+                        sound.play("booster");
                         booster.sprite.destroy();
                         this.boosters.splice(i, 1);
                         break;

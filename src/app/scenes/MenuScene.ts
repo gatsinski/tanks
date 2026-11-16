@@ -16,6 +16,7 @@ import {
 } from "app/levels";
 import { loadCustomLevels, deleteCustomLevel } from "app/customLevels";
 import EditorScene from "app/scenes/EditorScene";
+import { sound } from "app/sound";
 
 export interface GameStartData {
     levelIndex: number;
@@ -29,6 +30,8 @@ interface MenuItem {
     action: () => void;
     /** Optional left/right handler (for toggles) */
     adjust?: (dir: number) => void;
+    /** Mouse click on the left half calls adjust(-1), right half adjust(1) */
+    clickAdjusts?: boolean;
     /** Optional E / DEL handlers (custom level list) */
     edit?: () => void;
     remove?: () => void;
@@ -87,11 +90,18 @@ export default class MenuScene extends Phaser.Scene {
         kb.on("keydown-A", () => this.adjustFocused(-1));
         kb.on("keydown-RIGHT", () => this.adjustFocused(1));
         kb.on("keydown-D", () => this.adjustFocused(1));
-        kb.on("keydown-ENTER", () => this.items[this.focus]?.action());
-        kb.on("keydown-SPACE", () => this.items[this.focus]?.action());
+        kb.on("keydown-ENTER", () => this.activateFocused());
+        kb.on("keydown-SPACE", () => this.activateFocused());
         kb.on("keydown-ESC", () => this.onBack?.());
         kb.on("keydown-E", () => this.items[this.focus]?.edit?.());
         kb.on("keydown-DELETE", () => this.items[this.focus]?.remove?.());
+
+        // Keep labels (Settings page) in sync with the global M toggle
+        const refresh = () => this.setFocus(this.focus);
+        this.game.events.on("sound-changed", refresh);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+            this.game.events.off("sound-changed", refresh)
+        );
     }
 
     // ---------- Pages ----------
@@ -139,6 +149,10 @@ export default class MenuScene extends Phaser.Scene {
                     label: () => `Players:  ◀ ${this.playerCount} ▶`,
                     action: () => this.togglePlayers(1),
                     adjust: (dir) => this.togglePlayers(dir),
+                },
+                {
+                    label: () => "Settings",
+                    action: () => this.showSettings(),
                 },
             ],
             width / 2,
@@ -301,6 +315,76 @@ export default class MenuScene extends Phaser.Scene {
         this.setFocus(focus);
     }
 
+    private showSettings() {
+        this.resetPage();
+        const { width } = this.scale;
+
+        this.page.add(
+            this.add
+                .text(width / 2, 90, "SETTINGS", {
+                    fontFamily: "Arial Black, Arial, sans-serif",
+                    fontSize: "56px",
+                    color: COLORS.accentText,
+                    stroke: "#000000",
+                    strokeThickness: 6,
+                })
+                .setOrigin(0.5)
+        );
+
+        const toggleSound = () => {
+            sound.setEnabled(!sound.enabled);
+            this.setFocus(this.focus);
+        };
+        const changeVolume = (dir: number) => {
+            sound.setVolume(sound.volume + dir * 10);
+            if (!sound.enabled) sound.setEnabled(true);
+            this.setFocus(this.focus);
+            sound.play("menuMove");
+        };
+
+        this.setItems(
+            [
+                {
+                    label: () => `Sound:  ◀ ${sound.enabled ? "ON" : "OFF"} ▶`,
+                    action: toggleSound,
+                    adjust: toggleSound,
+                },
+                {
+                    label: () => {
+                        const filled = Math.round(sound.volume / 10);
+                        const bar =
+                            "█".repeat(filled) + "░".repeat(10 - filled);
+                        return `Volume:  ◀ ${bar} ${sound.volume}% ▶`;
+                    },
+                    action: () => changeVolume(1),
+                    adjust: changeVolume,
+                    clickAdjusts: true,
+                },
+                { label: () => "Back", action: () => this.showMainPage() },
+            ],
+            width / 2,
+            300,
+            80,
+            520
+        );
+
+        this.page.add(
+            this.add
+                .text(
+                    width / 2,
+                    this.scale.height - 60,
+                    "← → to change · ENTER to toggle · ESC to go back",
+                    {
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: "16px",
+                        color: COLORS.mutedText,
+                    }
+                )
+                .setOrigin(0.5)
+        );
+        this.onBack = () => this.showMainPage();
+    }
+
     private playCustom(level: LevelDefinition) {
         const data: GameStartData = {
             levelIndex: 0,
@@ -410,7 +494,15 @@ export default class MenuScene extends Phaser.Scene {
         container.setSize(w, h);
         container.setInteractive({ useHandCursor: true });
         container.on("pointerover", () => this.setFocus(index));
-        container.on("pointerdown", () => this.items[index].action());
+        container.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+            this.setFocus(index);
+            const item = this.items[index];
+            if (item.clickAdjusts && item.adjust) {
+                item.adjust(pointer.worldX < container.x ? -1 : 1);
+                return;
+            }
+            this.activateFocused();
+        });
     }
 
     private redrawItem(view: Phaser.GameObjects.Container, focused: boolean) {
@@ -432,7 +524,13 @@ export default class MenuScene extends Phaser.Scene {
         this.itemViews.forEach((v, i) => this.redrawItem(v, i === this.focus));
     }
 
+    private activateFocused() {
+        sound.play("menuSelect");
+        this.items[this.focus]?.action();
+    }
+
     private moveFocus(dir: number) {
+        sound.play("menuMove");
         const n = this.items.length;
         this.setFocus((this.focus + dir + n) % n);
         if (this.focus < LEVELS.length && this.onBack)
